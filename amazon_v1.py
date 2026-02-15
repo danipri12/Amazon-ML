@@ -307,7 +307,7 @@ market_score = (
     0.3 * log_strength
 )
 
-print("\n--- Product Analysis ---")
+print("\nProduct Analysis: ")
 print("Category:", category_input)
 print("Predicted rating count:", round(predicted_rating_count))
 print("Global percentile:", round(global_percentile,3))
@@ -316,31 +316,31 @@ print("Category z-score:", round(category_zscore,3))
 print("Market potential score:", round(market_score,3))
 
 # print interpretations to the scores
-print("\n--- Interpretation ---")
+print("\nInterpretation: ")
 
 if category_percentile > 0.9:
-    print("🔥 Top 10% product within this category.")
+    print("Top 10% product within this category.")
 elif category_percentile > 0.75:
-    print("🚀 Strong product within this category.")
+    print("Strong product within this category.")
 elif category_percentile > 0.5:
-    print("⚖️ Above average within this category.")
+    print("Above average within this category.")
 else:
-    print("⚠️ Below median performance for this category.")
+    print("Below median performance for this category.")
 
 if global_percentile > 0.9:
-    print("🌎 Elite product across entire marketplace.")
+    print("Very strong product across entire marketplace.")
 elif global_percentile > 0.75:
-    print("🌍 Strong globally.")
+    print("Strong globally.")
 elif global_percentile > 0.5:
-    print("📊 Above average globally.")
+    print("Above average globally.")
 else:
-    print("📉 Would struggle to compete globally.")
+    print("Would struggle to compete globally.")
 
-# to keep testing
+# to test multiple products at once
 def analyze_product():
     print("\nChoose a product category by number:\n")
 
-    # Use the encoder you already trained
+    # use trained encoder
     categories = encoder.categories_[0]
 
     for i, cat in enumerate(categories):
@@ -364,7 +364,7 @@ def analyze_product():
 
     description = input("Enter product description: ")
 
-    # ----- Feature creation -----
+    # create features
     user_numeric = np.array([[discounted_price, actual_price, discount_percentage, rating]])
     user_numeric_scaled = scaler.transform(user_numeric)
 
@@ -378,13 +378,13 @@ def analyze_product():
         user_text_embedding
     ])
 
-    # ----- Similarity prediction (same logic as dataset) -----
+    # predict similarity
     similarities = cosine_similarity(user_features, X_final)[0]
 
     predicted_log = predict_single_rating(similarities, y_log)
     predicted_count = np.expm1(predicted_log)
 
-    # ----- Relative Metrics -----
+    # relative metrics
     global_percentile = (df["rating_count"] < predicted_count).mean()
 
     category_df = df[df["main_category"] == category]
@@ -394,7 +394,7 @@ def analyze_product():
     category_std = category_df["rating_count"].std()
     z_score = (predicted_count - category_mean) / category_std
 
-    print("\n--- Product Analysis ---")
+    print("\nProduct Analysis:")
     print(f"Category: {category}")
     print(f"Predicted rating count: {int(predicted_count)}")
     print(f"Global percentile: {global_percentile:.3f}")
@@ -402,43 +402,19 @@ def analyze_product():
     print(f"Category z-score: {z_score:.3f}")
 
     if category_percentile > 0.8:
-        print("🚀 Extremely strong within this category.")
+        print("Extremely strong within this category.")
     elif category_percentile > 0.6:
-        print("📈 Strong within this category.")
+        print("Strong within this category.")
     elif category_percentile > 0.4:
-        print("⚖️ Around average within this category.")
+        print("Around average within this category.")
     else:
-        print("📉 Weak within this category.")
+        print("Weak within this category.")
 
 
-# 🔁 Loop
+# loop until break
 while True:
     analyze_product()
     again = input("\nTest another product? (y/n): ")
-    if again.lower() != "y":
+    if again.lower() -= "n":
         print("Done testing.")
         break
-
-import json
-import os
-
-# Show files so you can copy exact name
-print("Files in folder:")
-print(os.listdir())
-notebook_path = "amazon_v1.ipynb"
-
-with open(notebook_path, "r", encoding="utf-8") as f:
-    nb = json.load(f)
-
-# ---- REMOVE WIDGET METADATA FROM CELLS ----
-for cell in nb.get("cells", []):
-    if "metadata" in cell and "widgets" in cell["metadata"]:
-        del cell["metadata"]["widgets"]
-
-# ---- REMOVE WIDGET METADATA FROM ROOT NOTEBOOK METADATA ----
-if "metadata" in nb and "widgets" in nb["metadata"]:
-    del nb["metadata"]["widgets"]
-
-# ---- SAVE CLEAN VERSION ----
-with open(notebook_path, "w", encoding="utf-8") as f:
-    json.dump(nb, f, ensure_ascii=False, indent=1)
